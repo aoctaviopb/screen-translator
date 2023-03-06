@@ -112,6 +112,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.5.0"
+  google_mlkit_translation:
+    dependency: "direct main"
+    description:
+      name: google_mlkit_translation
+      sha256: cb560795ceca016df7e6718285a3c974be8df054b99bc042f311ba68dacd9170
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.0"
   http:
     dependency: transitive
     description:
