@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:google_mlkit_translation/google_mlkit_translation.dart';
 import 'package:image_picker/image_picker.dart';
+import 'componentes/text_recognition.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,9 +18,15 @@ class _HomeScreenState extends State<HomeScreen> {
   File? image;
   String texto = "Aca va texto";
   String traduccion = "Aca va una traducción";
+
+  GoogleMlKit googleMlKit = GoogleMlKit();
+
   final textRecognizer = TextRecognizer(
     script: TextRecognitionScript.korean,
   );
+
+  final TranslateLanguage sourceLanguage = TranslateLanguage.korean;
+  final TranslateLanguage targetLanguage = TranslateLanguage.english;
 
   void pickImage() async {
     final ImagePicker imagePicker = ImagePicker();
@@ -28,48 +36,19 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
-  void recognizeText() async {
-    final InputImage inputImage;
-    inputImage = InputImage.fromFile(image!);
-
-    final RecognizedText recognizedText =
-        await textRecognizer.processImage(inputImage);
-    String text = recognizedText.text;
-    //print(text);
-    setState(() {
-      texto = text;
-    });
-
-    translateText(text);
-
-/*     for (TextBlock block in recognizedText.blocks) {
-      final String text = block.text;
-      final List<String> languages = block.recognizedLanguages;
-
-      for (TextLine line in block.lines) {
-        // Same getters as TextBlock
-        
-        for (TextElement element in line.elements) {
-          // Same getters as TextBlock
-        }
-      }
-    } */
-  }
-
-  void translateText(String text) async {
-    final TranslateLanguage sourceLanguage;
-    final TranslateLanguage targetLanguage;
-
-    final onDeviceTranslator = OnDeviceTranslator(
-      sourceLanguage: TranslateLanguage.korean,
-      targetLanguage: TranslateLanguage.english,
+  void translate() async {
+    texto = await googleMlKit.recognizeText(
+      image: image!,
+      textRecognizer: textRecognizer,
     );
 
-    final String response = await onDeviceTranslator.translateText(text);
-    print(response);
-    setState(() {
-      traduccion = response;
-    });
+    traduccion = await googleMlKit.translateText(
+      sourceLanguage: sourceLanguage,
+      targetLanguage: targetLanguage,
+      text: texto,
+    );
+
+    setState(() {});
   }
 
   @override
@@ -93,7 +72,6 @@ class _HomeScreenState extends State<HomeScreen> {
         centerTitle: true,
       ),
       body: Container(
-        //width: double.infinity,
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
@@ -105,9 +83,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       ? const Text(
                           'Soy uma imagen',
                         )
-                      : Image.file(
-                          image!,
-                        ),
+                      : CustomPaint(
+                        foregroundPainter: RectPainter(),
+                        child: Image.file(
+                        image!,
+                      ),
+                      ),
                 ),
               ),
             ),
@@ -129,12 +110,33 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 10,
             ),
             TextButton(
-              onPressed: recognizeText,
+              onPressed: translate,
               child: const Text('Traducir'),
             )
           ],
         ),
       ),
     );
+  }
+}
+
+class RectPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    var paint1 = Paint()
+      ..color = const Color.fromARGB(255, 82, 85, 82)
+      ..style = PaintingStyle.fill;
+    //canvas.drawRect(Offset(22, 165) & Size(200, 100), paint1);
+    //print(size.height);
+    //print(size.width);
+    var a = const Offset(0, 0); 
+    var b = const Offset(109, 45);
+
+    canvas.drawRect(Rect.fromPoints(a, b), paint1);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return false;
   }
 }
