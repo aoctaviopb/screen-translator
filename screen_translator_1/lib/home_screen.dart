@@ -16,11 +16,18 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   File? image;
-  String texto = "Aca va texto";
-  String traduccion = "Aca va una traducción";
+  Size? imageSize;
+  /*  String texto = "Aca va texto";
+  String traduccion = "Aca va una traducción"; */
+  List<String> toTranslate = [];
+  List<List<Point<int>>> imageCornerPoints = [];
+  List<String> translated = [];
 
   GoogleMlKit googleMlKit = GoogleMlKit();
 
+  RecognizedText? recognizedText;
+
+  late InputImage inputImage;
   final textRecognizer = TextRecognizer(
     script: TextRecognitionScript.korean,
   );
@@ -33,20 +40,35 @@ class _HomeScreenState extends State<HomeScreen> {
     final XFile? imgPick =
         await imagePicker.pickImage(source: ImageSource.gallery);
     image = File(imgPick!.path);
+
+    var decode = await decodeImageFromList(image!.readAsBytesSync());
+    imageSize = Size(decode.width.toDouble(), decode.height.toDouble());
+
+    inputImage = InputImage.fromFile(image!);
     setState(() {});
   }
 
   void translate() async {
-    texto = await googleMlKit.recognizeText(
-      image: image!,
+    recognizedText = await googleMlKit.recognizeText(
+      inputImage: inputImage,
       textRecognizer: textRecognizer,
     );
 
-    traduccion = await googleMlKit.translateText(
-      sourceLanguage: sourceLanguage,
-      targetLanguage: targetLanguage,
-      text: texto,
-    );
+    for (TextBlock block in recognizedText!.blocks) {
+      for (TextLine line in block.lines) {
+        imageCornerPoints.add(line.cornerPoints);
+        toTranslate.add(line.text);
+      }
+    }
+
+    for (String line in toTranslate) {
+      String lineTranslated = await googleMlKit.translateText(
+        sourceLanguage: sourceLanguage,
+        targetLanguage: targetLanguage,
+        text: line,
+      );
+      translated.add(lineTranslated);
+    }
 
     setState(() {});
   }
@@ -62,6 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
 /*     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
  */
+
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: pickImage,
@@ -84,21 +107,24 @@ class _HomeScreenState extends State<HomeScreen> {
                           'Soy uma imagen',
                         )
                       : CustomPaint(
-                        foregroundPainter: RectPainter(),
-                        child: Image.file(
-                        image!,
-                      ),
-                      ),
+                          foregroundPainter: RectPainter(
+                            imageSize: imageSize!,
+                            imageCornerPoints: imageCornerPoints,
+                          ),
+                          child: Image.file(
+                            image!,
+                          ),
+                        ),
                 ),
               ),
             ),
             const SizedBox(
               height: 10,
             ),
-            SingleChildScrollView(
+/*             SingleChildScrollView(
               child: Column(
                 children: [
-                  Text(texto),
+                  Text('texto'),
                   const SizedBox(
                     height: 10,
                   ),
@@ -108,7 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(
               height: 10,
-            ),
+            ), */
             TextButton(
               onPressed: translate,
               child: const Text('Traducir'),
@@ -121,22 +147,44 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class RectPainter extends CustomPainter {
+  RectPainter({
+    required this.imageSize,
+    required this.imageCornerPoints,
+  });
+  Size imageSize;
+  List<List<Point<int>>> imageCornerPoints;
+
   @override
   void paint(Canvas canvas, Size size) {
     var paint1 = Paint()
       ..color = const Color.fromARGB(255, 82, 85, 82)
       ..style = PaintingStyle.fill;
-    //canvas.drawRect(Offset(22, 165) & Size(200, 100), paint1);
-    //print(size.height);
-    //print(size.width);
-    var a = const Offset(0, 0); 
-    var b = const Offset(109, 45);
 
-    canvas.drawRect(Rect.fromPoints(a, b), paint1);
+    for (var cornerPoint in imageCornerPoints) {
+      Point<int> point1 = cornerPoint[0];
+      Point<int> point2 = cornerPoint[2];
+
+      int x1 = point1.x;
+      int y1 = point1.y;
+
+      int x2 = point2.x;
+      int y2 = point2.y;
+
+      double dx1 = x1 * size.width / imageSize.width;
+      double dy1 = y1 * size.height / imageSize.height;
+
+      double dx2 = x2 * size.width / imageSize.width;
+      double dy2 = y2 * size.height / imageSize.height;
+
+      var a = Offset(dx1, dy1);
+      var b = Offset(dx2, dy2);
+
+      canvas.drawRect(Rect.fromPoints(a, b), paint1);
+    }
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
+    return true;
   }
 }

@@ -1,40 +1,21 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:google_mlkit_translation/google_mlkit_translation.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter/src/painting/image_decoder.dart' as dec;
 
 class GoogleMlKit {
-  Future<String> recognizeText({
-    required File image,
+  Future<RecognizedText> recognizeText({
+    required InputImage inputImage,
     required TextRecognizer textRecognizer,
   }) async {
-    final InputImage inputImage;
-    inputImage = InputImage.fromFile(image);
-
     final RecognizedText recognizedText =
         await textRecognizer.processImage(inputImage);
-    String text = recognizedText.text;
+    RecognizedText text = recognizedText;
 
-    for (TextBlock block in recognizedText.blocks) {
-      final String textBlock = block.text;
-      final List<String> languages = block.recognizedLanguages;
-
-      //print(block.cornerPoints);
-      //print(block.boundingBox.left);
-
-
-      for (TextLine line in block.lines) {
-        // Same getters as TextBlock
-        //print(line.cornerPoints);
-
-/*         for (TextElement element in line.elements) {
-          // Same getters as TextBlock
-        } */
-      }
-    }
-
-  return text;
-
+    return text;
   }
 
   Future<String> translateText({
@@ -50,6 +31,4 @@ class GoogleMlKit {
     final String response = await onDeviceTranslator.translateText(text);
     return response;
   }
-
-
 }
