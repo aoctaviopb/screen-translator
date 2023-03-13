@@ -36,6 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final TranslateLanguage targetLanguage = TranslateLanguage.english;
 
   void pickImage() async {
+    imageCornerPoints.clear();
     final ImagePicker imagePicker = ImagePicker();
     final XFile? imgPick =
         await imagePicker.pickImage(source: ImageSource.gallery);
