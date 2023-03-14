@@ -1,10 +1,5 @@
-import 'dart:io';
-import 'dart:ui';
-
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:google_mlkit_translation/google_mlkit_translation.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:flutter/src/painting/image_decoder.dart' as dec;
 
 class GoogleMlKit {
   Future<RecognizedText> recognizeText({

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:google_mlkit_translation/google_mlkit_translation.dart';
 import 'package:image_picker/image_picker.dart';
+import 'componentes/custom_painter.dart';
 import 'componentes/text_recognition.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -17,10 +18,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   File? image;
   Size? imageSize;
-  /*  String texto = "Aca va texto";
-  String traduccion = "Aca va una traducción"; */
-  List<String> toTranslate = [];
   List<List<Point<int>>> imageCornerPoints = [];
+  List<String> toTranslate = [];
   List<String> translated = [];
 
   GoogleMlKit googleMlKit = GoogleMlKit();
@@ -37,6 +36,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void pickImage() async {
     imageCornerPoints.clear();
+    toTranslate.clear();
+    translated.clear();
+
     final ImagePicker imagePicker = ImagePicker();
     final XFile? imgPick =
         await imagePicker.pickImage(source: ImageSource.gallery);
@@ -56,9 +58,21 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     for (TextBlock block in recognizedText!.blocks) {
+/*       imageCornerPoints.add(block.cornerPoints);
+      toTranslate.add(block.text); */
       for (TextLine line in block.lines) {
-        imageCornerPoints.add(line.cornerPoints);
+         imageCornerPoints.add(line.cornerPoints);
         toTranslate.add(line.text);
+        //List<String> concatLines = [];
+
+/*         for (var element in line.elements) {
+          imageCornerPoints.add(element.cornerPoints);
+          toTranslate.add(element.text);
+          //concatLines.add(element.text);
+        } */
+
+/*         String lines = concatLines.join(' ');
+        toTranslate.add(lines); */
       }
     }
 
@@ -71,6 +85,8 @@ class _HomeScreenState extends State<HomeScreen> {
       translated.add(lineTranslated);
     }
 
+    print(translated);
+
     setState(() {});
   }
 
@@ -82,10 +98,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-/*     double width = MediaQuery.of(context).size.width;
-    double height = MediaQuery.of(context).size.height;
- */
-
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: pickImage,
@@ -111,6 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           foregroundPainter: RectPainter(
                             imageSize: imageSize!,
                             imageCornerPoints: imageCornerPoints,
+                            translated: translated,
                           ),
                           child: Image.file(
                             image!,
@@ -122,20 +135,6 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(
               height: 10,
             ),
-/*             SingleChildScrollView(
-              child: Column(
-                children: [
-                  Text('texto'),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Text(traduccion),
-                ],
-              ),
-            ),
-            const SizedBox(
-              height: 10,
-            ), */
             TextButton(
               onPressed: translate,
               child: const Text('Traducir'),
@@ -144,48 +143,5 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
-  }
-}
-
-class RectPainter extends CustomPainter {
-  RectPainter({
-    required this.imageSize,
-    required this.imageCornerPoints,
-  });
-  Size imageSize;
-  List<List<Point<int>>> imageCornerPoints;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    var paint1 = Paint()
-      ..color = const Color.fromARGB(255, 82, 85, 82)
-      ..style = PaintingStyle.fill;
-
-    for (var cornerPoint in imageCornerPoints) {
-      Point<int> point1 = cornerPoint[0];
-      Point<int> point2 = cornerPoint[2];
-
-      int x1 = point1.x;
-      int y1 = point1.y;
-
-      int x2 = point2.x;
-      int y2 = point2.y;
-
-      double dx1 = x1 * size.width / imageSize.width;
-      double dy1 = y1 * size.height / imageSize.height;
-
-      double dx2 = x2 * size.width / imageSize.width;
-      double dy2 = y2 * size.height / imageSize.height;
-
-      var a = Offset(dx1, dy1);
-      var b = Offset(dx2, dy2);
-
-      canvas.drawRect(Rect.fromPoints(a, b), paint1);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return true;
   }
 }
