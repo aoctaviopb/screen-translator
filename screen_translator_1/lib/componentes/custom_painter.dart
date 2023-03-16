@@ -36,8 +36,8 @@ class RectPainter extends CustomPainter {
       double dx2 = x2 * size.width / imageSize.width;
       double dy2 = y2 * size.height / imageSize.height;
 
-      var a = Offset(dx1-10, dy1);
-      var b = Offset(dx2+10, dy2);
+      var a = Offset(dx1-20, dy1-5);
+      var b = Offset(dx2+20, dy2+5);
 
       canvas.drawRect(Rect.fromPoints(a, b), paint1);
 
@@ -52,8 +52,9 @@ class RectPainter extends CustomPainter {
         textAlign: TextAlign.left,
         textDirection: TextDirection.ltr,
       );
-      textPainter.layout(maxWidth: 120);
-      textPainter.paint(canvas, a);
+      var aText = Offset(dx1-10, dy1);
+      textPainter.layout(maxWidth: 200);
+      textPainter.paint(canvas, aText);
 
       i++;
     }

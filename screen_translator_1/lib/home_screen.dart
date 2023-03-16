@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:google_mlkit_translation/google_mlkit_translation.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:translator/translator.dart';
 import 'componentes/custom_painter.dart';
 import 'componentes/text_recognition.dart';
 
@@ -25,6 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   GoogleMlKit googleMlKit = GoogleMlKit();
 
   RecognizedText? recognizedText;
+  final translator = GoogleTranslator();
 
   late InputImage inputImage;
   final textRecognizer = TextRecognizer(
@@ -35,14 +37,16 @@ class _HomeScreenState extends State<HomeScreen> {
   final TranslateLanguage targetLanguage = TranslateLanguage.english;
 
   void pickImage() async {
-    imageCornerPoints.clear();
-    toTranslate.clear();
-    translated.clear();
-
+    clear();
     final ImagePicker imagePicker = ImagePicker();
+
     final XFile? imgPick =
         await imagePicker.pickImage(source: ImageSource.gallery);
-    image = File(imgPick!.path);
+
+    if (imgPick == null) {
+      return;
+    }
+    image = File(imgPick.path);
 
     var decode = await decodeImageFromList(image!.readAsBytesSync());
     imageSize = Size(decode.width.toDouble(), decode.height.toDouble());
@@ -52,42 +56,41 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void translate() async {
+    clear();
     recognizedText = await googleMlKit.recognizeText(
       inputImage: inputImage,
       textRecognizer: textRecognizer,
     );
 
     for (TextBlock block in recognizedText!.blocks) {
-/*       imageCornerPoints.add(block.cornerPoints);
-      toTranslate.add(block.text); */
-      for (TextLine line in block.lines) {
-         imageCornerPoints.add(line.cornerPoints);
+      imageCornerPoints.add(block.cornerPoints);
+      toTranslate.add(block.text);
+/*       for (TextLine line in block.lines) {
+        imageCornerPoints.add(line.cornerPoints);
         toTranslate.add(line.text);
-        //List<String> concatLines = [];
-
-/*         for (var element in line.elements) {
-          imageCornerPoints.add(element.cornerPoints);
-          toTranslate.add(element.text);
-          //concatLines.add(element.text);
-        } */
-
-/*         String lines = concatLines.join(' ');
-        toTranslate.add(lines); */
-      }
+      } */
     }
 
     for (String line in toTranslate) {
-      String lineTranslated = await googleMlKit.translateText(
+/*       String lineTranslated = await googleMlKit.translateText( //Translate with google MLKit (is better with the widget translator)
         sourceLanguage: sourceLanguage,
         targetLanguage: targetLanguage,
         text: line,
-      );
-      translated.add(lineTranslated);
+      ); */
+
+      Translation lineTranslated =
+          await translator.translate(line, from: 'auto', to: 'en');
+
+      translated.add(lineTranslated.toString());
     }
 
-    print(translated);
-
     setState(() {});
+  }
+
+  void clear() {
+    imageCornerPoints = [];
+    toTranslate = [];
+    translated = [];
   }
 
   @override
@@ -115,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: InteractiveViewer(
                 child: Container(
                   alignment: Alignment.center,
-                  child: image == null
+                  child: image != null
                       ? const Text(
                           'Soy uma imagen',
                         )
