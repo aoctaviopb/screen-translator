@@ -2,6 +2,8 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:google_mlkit_translation/google_mlkit_translation.dart';
 import 'package:image_picker/image_picker.dart';
@@ -18,7 +20,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   File? image;
-  Size? imageSize;
+  Size? imageSize; // = Size(50.0, 50.0);
   List<List<Point<int>>> imageCornerPoints = [];
   List<String> toTranslate = [];
   List<String> translated = [];
@@ -93,6 +95,24 @@ class _HomeScreenState extends State<HomeScreen> {
     translated = [];
   }
 
+  void checkOverlay() async {
+    final bool status = await FlutterOverlayWindow.isPermissionGranted();
+    if (status == false) {
+      await FlutterOverlayWindow.requestPermission();
+    }
+    await FlutterOverlayWindow.showOverlay(
+      height: 150,
+      width: 150,
+      enableDrag: true,
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    checkOverlay();
+  }
+
   @override
   void dispose() {
     super.dispose();
@@ -118,7 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: InteractiveViewer(
                 child: Container(
                   alignment: Alignment.center,
-                  child: image != null
+                  child: image == null
                       ? const Text(
                           'Soy uma imagen',
                         )

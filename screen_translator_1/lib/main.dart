@@ -1,9 +1,22 @@
 import 'package:flutter/material.dart';
-
 import 'home_screen.dart';
 
 void main() {
   runApp(const MyApp());
+}
+
+// overlay entry point
+@pragma("vm:entry-point")
+void overlayMain() {
+  WidgetsFlutterBinding.ensureInitialized;
+  runApp(
+    const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Material(
+        child: Text("My overlay", style: TextStyle(color: Colors.black),),
+      ),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
